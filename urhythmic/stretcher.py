@@ -31,7 +31,7 @@ class TimeStretcherFineGrained:
         """
         units = [
             units[..., t0:tn]
-            for cluster, (t0, tn) in zip(clusters, itertools.pairwise(boundaries))
+            for cluster, (t0, tn) in zip(clusters, zip(boundaries[:-1], boundaries[1:]))
             if cluster not in SILENCE or tn - t0 > 3
         ]
         units = [

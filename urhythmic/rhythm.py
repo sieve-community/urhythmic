@@ -135,14 +135,22 @@ class RhythmModelFineGrained:
             List[int]: list of target durations of shape (N,)
         """
         durations = self.hop_rate * np.diff(boundaries)
-        durations = [
-            transform(self.source[cluster], self.target[cluster], duration)
-            for cluster, duration in zip(clusters, durations)
-            if cluster not in SILENCE
-            or duration > 3 * self.hop_rate  # ignore silences that are too short
-        ]
-        durations = [round(duration / self.hop_rate) for duration in durations]
-        return durations
+        # previous implementation doesn't account for when audios are too short and don't have certain sound types
+        new_durations = []
+        for cluster, duration in zip(clusters, durations):
+            if cluster not in SILENCE or duration > 3 * self.hop_rate:
+                if cluster in self.source and cluster in self.target:
+                    new_durations.append(
+                        transform(self.source[cluster], self.target[cluster], duration)
+                    )
+                    # sometimes is NaN, handle it
+                    if np.isnan(new_durations[-1]):
+                        new_durations[-1] = duration
+                else:
+                    new_durations.append(duration)
+
+        new_durations = [round(duration / self.hop_rate) for duration in new_durations]
+        return new_durations
 
 
 class RhythmModelGlobal:

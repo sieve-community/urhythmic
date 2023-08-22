@@ -47,6 +47,7 @@ def save_checkpoint(
     loss,
     best,
     logger,
+    save_best_only=False,
 ):
     state = {
         "generator": {
@@ -62,13 +63,15 @@ def save_checkpoint(
         "step": step,
         "loss": loss,
     }
-    checkpoint_dir.mkdir(exist_ok=True, parents=True)
-    checkpoint_path = checkpoint_dir / f"model-{step}.pt"
-    torch.save(state, checkpoint_path)
+    if not save_best_only:
+        checkpoint_dir.mkdir(exist_ok=True, parents=True)
+        checkpoint_path = checkpoint_dir / f"model-{step}.pt"
+        torch.save(state, checkpoint_path)
     if best:
         best_path = checkpoint_dir / "model-best.pt"
         torch.save(state, best_path)
-    logger.info(f"Saved checkpoint: {checkpoint_path.stem}")
+
+    print(f"Saved checkpoint to {checkpoint_dir}")
 
 
 def load_checkpoint(
